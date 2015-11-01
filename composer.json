@@ -1,0 +1,22 @@
+{
+	"name": "sallyx/redis-php-stream-wrapper",
+	"description": "Implementation of streamWrapper using redis ",
+	"homepage": "http://github.org/sallyx/redis-php-stream-wrapper",
+	"license": ["GNU 2"],
+	"authors": [
+		{
+			"name": "Petr Bilek",
+			"homepage": "http://www.sallyx.org"
+		}
+	],
+	"require": {
+		"php": ">=5.4.0"
+	},
+	"require-dev": {
+		"nette/tester": "~1.4.0"
+	},
+	"autoload": {
+		"classmap": ["src/"]
+	},
+	"minimum-stability": "stable"
+}
