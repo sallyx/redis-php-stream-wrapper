@@ -10,7 +10,8 @@ php:
  
 env: dependencies="--prefer-stable"
 
-
+services:
+        - redis-server
 
 matrix:
     allow_failures:
