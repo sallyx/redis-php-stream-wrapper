@@ -66,7 +66,7 @@ class RedisWrapper {
 			throw new \InvalidStateException('Connector already registered.');
 		}
 		self::$connectors[$wrapperName] = $connector;
-		return \stream_wrapper_register($wrapperName, self::class, 0);
+		return \stream_wrapper_register($wrapperName, 'Sallyx\StreamWrappers\RedisWrapper', 0);
 	}
 
 	/**
