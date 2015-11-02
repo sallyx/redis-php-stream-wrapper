@@ -479,15 +479,22 @@ class RedisWrapper {
 	 * Retrieve information about a file resource
 	 */
 	public function stream_stat() {
-		$file = $this->redis->hMGet($this->getFileName(), array('size','atime', 'mtime','ctime'));
+		$file = $this->redis->hMGet($this->getFileName(), array('size','atime', 'mtime','ctime', 'type'));
 		if($file['ctime'] === FALSE) {
 			return NULL;
+		}
+		$mode = 0;
+		if ($file['type'] === 'f') {
+			$mode = 0100666;
+		}
+		if ($file['type'] === 'd') {
+			$mode = 040777;
 		}
 
 		$values = array(
 			'dev' => 0, //TODO: dbindex
 			'ino' => 0,
-			'mode' => 0,
+			'mode' => $mode,
 			'nlink' => 1,
 			'uid' => 0,
 			'gid' => 0,
