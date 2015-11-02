@@ -12,6 +12,6 @@ interface RedisConnector {
 	/**
 	 * Close connection
 	 * @return void
-	 */ 
+	 */
 	public function disconnect();
 }

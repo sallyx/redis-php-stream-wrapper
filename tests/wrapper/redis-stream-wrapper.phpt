@@ -140,7 +140,7 @@ $res = opendir('redis://sallyx/');
 Assert::true($res !== NULL);
 $files = [];
 while (false !== ($file = readdir($res))) {
-    $files[] = $file;
+	$files[] = $file;
 }
 Assert::contains('redis://sallyx/', $files);
 Assert::contains($fileToTruncate, $files);
@@ -160,3 +160,17 @@ Assert::false(file_exists('redis://sallyx/a/b/c/'));
 $context = stream_context_create(array('dir' => array('recursive' => true)));
 Assert::true(rmdir('redis://sallyx/a', $context));
 Assert::false(file_exists('redis://sallyx/a'));
+
+$from = 'redis://sallyx/file1.txt';
+$to = 'redis://sallyx/file2.txt';
+@file_put_contents($from,'lorem ipsum');
+@unlink($to);
+Assert::false(rename($from, 'redis://sallyx/non/existing/directory/soubor.txt'));
+Assert::true(rename($from, $to));
+Assert::true(file_exists($to));
+Assert::false(file_exists($from));
+$dir = 'redis://sallyx/movehere/';
+@unlink($dir);
+@mkdir($dir);
+Assert::true(rename($to, $dir));
+Assert::true(file_exists($dir.'file2.txt'));

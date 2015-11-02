@@ -17,7 +17,7 @@ class RedisWrapper {
 	private static $connectors = [];
 
 	/**
-	 * @var RedisConnector 
+	 * @var RedisConnector
 	 */
 	private $connector;
 
@@ -59,21 +59,21 @@ class RedisWrapper {
 	/**
 	 * Register a redis wrapper
 	 * @param $wrapperName Name of the stream (i.e. redis for redis://...)
-	 * @return bool Returns TRUE on success or FALSE on failure. 
+	 * @return bool Returns TRUE on success or FALSE on failure.
 	 */
 	public static function register($wrapperName='redis', RedisConnector $connector) {
 		if(isset(self::$connectors[$wrapperName])) {
 			throw new \InvalidStateException('Connector already registered.');
 		}
 		self::$connectors[$wrapperName] = $connector;
-		return \stream_wrapper_register($wrapperName, self::class, 1);
+		return \stream_wrapper_register($wrapperName, self::class, 0);
 	}
 
 	/**
 	 * Constructor
 	 */
 	public function __construct() {
-        }
+	}
 
 	/**
 	 * Destructor
@@ -108,6 +108,9 @@ class RedisWrapper {
 		return TRUE;
 	}
 
+	/**
+	 * Read entry from directory handle
+	 */
 	public function dir_readdir() {
 		if($this->dirEntries === NULL) {
 			$this->dirIndex = 0;
@@ -117,7 +120,7 @@ class RedisWrapper {
 				trigger_error("reading $path error", E_USER_NOTICE);
 				return FALSE;
 			}
-			$len = strlen($this->getRootDirectory());
+			$len = strlen($this->getNamespaceKey());
 			$prefix = $this->scheme.'://'.$this->namespace;
 			$this->dirEntries = array_map(function($name)  use ($len, $prefix) {
 				return $prefix.substr($name, $len);
@@ -137,6 +140,9 @@ class RedisWrapper {
 		$this->dirIndex = 0;
 	}
 
+	/**
+	 * Create a directory
+	 */
 	public function mkdir($path, $mode, $options) {
 		if(!$this->initPath($path)) {
 			return FALSE;
@@ -167,6 +173,42 @@ class RedisWrapper {
 		return !!$created;
 	}
 
+	/**
+	 * Renames a file or directory
+	 */
+	public function rename($path_from, $path_to) {
+		if(!$this->initPath($path_to)) {
+			return FALSE;
+		}
+		$keyTo = $this->getFileName();
+		if(!$this->initPath($path_from)) {
+			return FALSE;
+		}
+		$keyFrom = $this->getFileName();
+		$dirname = dirname($keyTo);
+		if($dirname == $this->getNamespaceKey()) {
+			$dirname .= '/';
+		}
+		$keys = array($keyFrom, $keyTo, $dirname, basename($keyFrom));
+		$ret = $this->redis->eval("
+			local dir_type, file_type, newName;
+			local dir_type = redis.call('HGET',KEYS[3], 'type');
+			file_type = redis.call('HGET',KEYS[2],'type');
+			if dir_type ~= 'd' then return redis.error_reply('Directory '..KEYS[3]..' not exists'); end;
+			if (file_type ~= 'd' and file_type ~= false) then return redis.error_reply('File exists and not directory') end;
+			newName = KEYS[2];
+			if file_type == 'd'
+			then
+				newName = newName..'/'..KEYS[4];
+				local ex = redis.call('EXISTS', newName);
+				if ex ~= 0 then return redis.error_reply('File '..newName..' exists '..ex) end;
+			end;
+			if not redis.call('EXISTS', KEYS[1]) then return redis.error_reply('Source file not exists'); end;
+			return redis.call('RENAME', KEYS[1], newName);
+		",$keys, count($keys));
+		return $ret;
+	}
+
 
 	/**
 	 * Removes a directory
@@ -176,7 +218,6 @@ class RedisWrapper {
 			return FALSE;
 		}
 		$recursive = $options & STREAM_MKDIR_RECURSIVE;
-		
 		if(!$recursive && $this->context !== NULL) {
 			$options = stream_context_get_options($this->context);
 			$recursive = !empty($options['dir']['recursive']);
@@ -204,7 +245,7 @@ class RedisWrapper {
 	}
 
 	/**
-	 * This method is called in response to feof(). 
+	 * Tests for end-of-file on a file pointer
 	 */
 	public function stream_eof() {
 		$len = $this->getLength();
@@ -215,11 +256,132 @@ class RedisWrapper {
 	 * Flushes the output
 	 */
 	public function stream_flush() {
+		return TRUE;
+	}
+
+	private $lockType = null;
+
+	/**
+	 * Advisory file locking
+	 */
+	public function stream_lock($operation) {
+		$nb = (bool) ($operation & LOCK_NB);
+		if($nb) { $operation ^= LOCK_NB; }
+		$sh =  $operation === LOCK_SH;
+		$ex =  $operation === LOCK_EX;
+		$un =  $operation === LOCK_UN;
+
+		if($un && $this->lockType === NULL) {
+			return FALSE;
+		}
+		if($sh) {
+			$lockType = 'sh';
+		} elseif ($ex) {
+			$lockType = 'ex';
+		} elseif (!$un) {
+			return NULL;
+		}
+
+		if(!$un and $this->lockType === $lockType) return true;
+
+
+		$lockName = $this->getLockName();
+		$redLock = new \RedLock\RedLock([$this->redis],200, $nb ? 1 : 50);
+		$timeout = 1;
+		$wait = 200;
+		$pokusu = $timeout/$wait;
+		do {
+			//$lock = $redLock->lock($lockName, 1000);
+			$lock = true;
+			if(!$lock) {
+				if(!$un) $this->lockType = NULL;
+				trigger_error('Cannot acquire lock', E_USER_NOTICE);
+				return FALSE;
+			}
+
+			if (!$un && $this->lockType !== NULL && $this->tryRelock($lockType)) {
+				$this->lockType = $lockType;
+				//$redLock->unlock($lock);
+				return TRUE;
+			}
+			elseif (!$un and $this->trySetLock($lockType)) {
+				$this->lockType = $lockType;
+				//$redLock->unlock($lock);
+				return TRUE;
+			}
+			elseif ($un and $this->tryUnlock()) {
+				$this->lockType = NULL;
+				//$redLock->unlock($lock);
+				return TRUE;
+			}
+			usleep($wait);
+			break;
+		} while (!$nb || 0 > $pokusu--);
+
+
+		//$redLock->unlock($lock);
+		return FALSE;
+	}
+
+	public function trySetLock($lockType) {
+		$lock_ex = $this->redis->hGet($this->getFileName(), 'lock_ex');
+		if($lock_ex !== "0") {
+			return FALSE;
+		}
+		if($lockType === 'ex') {
+			$lock =  $this->redis->hMGet($this->getFileName(), array('lock_sh','lock_ex'));
+			if($lock['lock_sh'] !== "0" || $lock['lock_ex'] !== "0") {
+				return FALSE;
+			}
+			if(!$this->redis->hIncrBy($this->getFileName(),'lock_ex', 1)) {
+				return FALSE;
+			}
+		} elseif ($lockType === 'sh') {
+			if(!$this->redis->hIncrBy($this->getFileName(),'lock_sh', 1)) {
+				return FALSE;
+			}
+		} else {
+			return FALSE;
+		}
+
+		return TRUE;
+	}
+
+	public function tryRelock($lockType) {
+		if($this->lockType === 'ex') {
+			if($lockType !== 'sh') return FALSE;
+			return $this->redis->hIncrBy($this->getFileName(), 'lock_sh', 1) !== FALSE;
+		} elseif($this->lockType == 'sh') {
+			if($lockType !== 'ex') return FALSE;
+			$lock =  $this->redis->hMGet($this->getFileName(), array('lock_sh','lock_ex'));
+			if($lock['lock_sh'] !== "0" || $lock['lock_ex'] !== "1") {
+				return FALSE;
+			}
+			if($this->redis->hIncrBy($this->getFileName(), 'lock_sh', -1) === FALSE) {
+				return FALSE;
+			}
+			$this->lockType = NULL;
+			return $this->redis->hIncrBy($this->getFileName(), 'lock_ex', 1) !== FALSE;
+		}
+		return FALSE;
+	}
+
+	public function tryUnlock() {
+		if($this->lockType === 'ex') {
+			if($this->redis->hSet($this->getFileName(),'lock_ex',0) === FALSE) {
+				return FALSE;
+			}
+		} elseif($this->lockType === 'sh') {
+			if($this->redis->hIncrBy($this->getFileName(),'lock_sh', -1) === FALSE) {
+				return FALSE;
+			}
+		}
+		return TRUE;
 	}
 
 
 	/**
-	 * This method is called immediately after the wrapper is initialized (f.e. by fopen() and file_get_contents()). 
+	 * Opens file or URL
 	 */
 	public function stream_open($path, $mode, $options, &$opened_path) {
 		if(!$this->initPath($path)) {
@@ -271,14 +433,14 @@ class RedisWrapper {
 	}
 
 	/**
-	 * This method is called in response to fread() and fgets().
+	 * Read from stream
 	 */
 	public function stream_read ($count) {
 		if(!in_array($this->mode, ['r','r+','w+','a+','x+','c+'])) {
 			return FALSE;
 		}
 		$file = $this->redis->hMGet(
-			$this->getFileName(), 
+			$this->getFileName(),
 			array('type', 'content')
 		);
 		if(empty($file)) {
@@ -293,6 +455,9 @@ class RedisWrapper {
 		return $ret;
 	}
 
+	/**
+	 * Seeks to specific location in a stream
+	 */
 	public function stream_seek($offset, $whence) {
 		switch($whence) {
 			case SEEK_SET:
@@ -316,7 +481,7 @@ class RedisWrapper {
 	public function stream_stat() {
 		$file = $this->redis->hMGet($this->getFileName(), array('size','atime', 'mtime','ctime'));
 		if($file['ctime'] === FALSE) {
-			return NULL; 
+			return NULL;
 		}
 
 		$values = array(
@@ -337,6 +502,20 @@ class RedisWrapper {
 		);
 
 		return array_merge(array_values($values), $values);
+	}
+
+	/**
+	 * Retrieve the current position of a stream
+	 */
+	public function stream_tell() {
+		return $this->fpos;
+	}
+
+	/**
+	 * Truncate stream
+	 */
+	public function stream_truncate($new_size) {
+		return $this->truncateFile($new_size);
 	}
 
 
@@ -370,7 +549,7 @@ class RedisWrapper {
 			);
 		}
 		if(in_array($this->mode,['a','a+'])) {
-			//  In this mode, fseek() only affects the reading position, writes are always appended. 
+			//  In this mode, fseek() only affects the reading position, writes are always appended.
 			$fpos =  $value['size'];
 		}
 		$value['atime'] = $value['mtime'] = time();
@@ -386,16 +565,8 @@ class RedisWrapper {
 	}
 
 	/**
-	 * Retrieve the current position of a stream
+	 * Delete a file
 	 */
-	public function stream_tell() {
-		return $this->fpos;
-	}
-
-	public function stream_truncate($new_size) {
-		return $this->truncateFile($new_size);
-	}
-
 	public function unlink($path) {
 		if(!$this->initPath($path)) {
 			return FALSE;
@@ -437,11 +608,17 @@ class RedisWrapper {
 			'atime' => time(),
 			'mtime' => time(),
 			'content' => str_repeat("\0", $this->fpos),
-			'size' => $this->fpos
+			'size' => $this->fpos,
+			'lock_ex' => 0,
+			'lock_sh' => 0,
 		);
 		return $this->redis->hMset($key, $value);
 	}
 
+	/**
+	 * @param int $size
+	 * @return bool
+	 */
 	public function truncateFile($size=0) {
 		$key = $this->getFileName();
 		if($size < 0)  {
@@ -477,12 +654,14 @@ class RedisWrapper {
 			return FALSE;
 		}
 		$dir = array(
-			'type' => 'd', 
+			'type' => 'd',
 			'ctime' => time(),
 			'atime' => time(),
 			'mtime' => time(),
-			'content' => $this->serialize(array()), 
-			'size' => 0
+			'content' => $this->serialize(array()),
+			'size' => 0,
+			'lock_ex' => 0,
+			'lock_sh' => 0,
 		);
 		if($this->redis->hMset($key, $dir)) {
 			return $dir;
@@ -495,7 +674,7 @@ class RedisWrapper {
 	 */
 	public function readDirectory($dirname) {
 		$dirname = preg_replace('@/$@', '', $dirname);
-		if($dirname === $this->getRootDirectory()) {
+		if($dirname === $this->getNamespaceKey()) {
 			$dirname .= '/';
 		}
 		$directory = $this->redis->hGetall($dirname);
@@ -505,7 +684,7 @@ class RedisWrapper {
 			}
 			return [];
 		}
-		if($dirname === $this->getRootDirectory().'/') {
+		if($dirname === $this->getNamespaceKey().'/') {
 			return $this->createDirectory($dirname);
 		}
 		return [];
@@ -526,6 +705,7 @@ class RedisWrapper {
 	}
 
 	private function normalize($path) {
+		$path = rtrim($path, '/');
 		$path = preg_replace('@//+@','/', $path);
 		$dirs = explode('/', $path);
 		$res = [];
@@ -538,16 +718,29 @@ class RedisWrapper {
 		return $path;
 	}
 
-	private function getRootDirectory() {
+	private function getNamespaceKey() {
 		return $this->namespace.'::';
 	}
 
 	private function getKeyByName($name) {
-		return $this->getRootdirectory().$name;
+		if(!$name) {
+			//root directory
+			$name = '/';
+		}
+		return $this->getNamespaceKey().$name;
 	}
 
 	private function getFileName() {
 		return $this->getKeyByname($this->path);
+	}
+
+	private function getLockName($op = 'lock') {
+		$name = $this->path;
+		if(!$name) {
+			//root directory
+			$name = '/';
+		}
+		return $this->getNamespaceKey().'~'.$op.'~'.$name;
 	}
 
 	public function getLength() {

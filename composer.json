@@ -1,8 +1,8 @@
 {
 	"name": "sallyx/redis-php-stream-wrapper",
-	"description": "Implementation of streamWrapper using redis ",
+	"description": "Implementation of streamWrapper using redis",
 	"homepage": "http://github.org/sallyx/redis-php-stream-wrapper",
-	"license": ["GNU 2"],
+	"license": [ "GNU 2", "BSD-3-Clause"],
 	"authors": [
 		{
 			"name": "Petr Bilek",
@@ -10,10 +10,15 @@
 		}
 	],
 	"require": {
-		"php": ">=5.4.0"
+		"php": ">=5.4.0",
+		"signe/redlock-php": "dev-master"
+
 	},
 	"require-dev": {
 		"nette/tester": "~1.4.0"
+	},
+	"suggest": {
+		"ext-redis": "The php redis extension https://github.com/phpredis/phpredis/ is required for connecting to redis server"
 	},
 	"autoload": {
 		"classmap": ["src/"]
