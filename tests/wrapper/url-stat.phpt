@@ -2,17 +2,18 @@
 require_once '../bootstrap.php';
 
 use Tester\Assert;
-use Sallyx\StreamWrappers\RedisWrapper;
-use Sallyx\StreamWrappers\DefaultRedisConnector;
+use Sallyx\StreamWrappers\Redis\Connector;
+use Sallyx\StreamWrappers\Redis\PathTranslator;
+use Sallyx\StreamWrappers\Redis\FileSystem;
+use Sallyx\StreamWrappers\Wrapper;
 
-$connector = new DefaultRedisConnector;
-
-Assert::true(RedisWrapper::register('redis', $connector));
+$fs = new FileSystem(new Connector(new PathTranslator('url-stat::')));
+Assert::true(Wrapper::register($fs));
 
 $context = stream_context_create(array('dir' => array('recursive' => true)));
-@rmdir('redis://url-stat/', $context);
-$file = 'redis://url-stat/testfile.txt';
-$dir = 'redis://url-stat/a';
+@rmdir('redis://', $context);
+$file = 'redis://testfile.txt';
+$dir = 'redis://a';
 
 Assert::same(11, file_put_contents($file,'lorem ipsum'));
 Assert::true(mkdir($dir));

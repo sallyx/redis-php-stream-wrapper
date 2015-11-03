@@ -18,4 +18,4 @@ define('TEMP_DIR', __DIR__ . '/tmp/' . getmypid());
 Tester\Helpers::purge(TEMP_DIR);
 ini_set('session.save_path', TEMP_DIR);
 
-require_once __DIR__ . '/../src/StreamWrappers/RedisWrapper.php';
+//require_once __DIR__ . '/../src/StreamWrappers/RedisWrapper.php';
