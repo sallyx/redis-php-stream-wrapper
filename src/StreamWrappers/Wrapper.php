@@ -4,6 +4,7 @@ namespace Sallyx\StreamWrappers;
 
 class Wrapper
 {
+
 	/**
 	 * @var resource
 	 */
@@ -431,7 +432,7 @@ class Wrapper
 				$this->fpos = intval($size) + $offset;
 				return TRUE;
 		}
-		return false;
+		return FALSE;
 	}
 
 	/**
@@ -534,8 +535,8 @@ class Wrapper
 	private function truncateFile($size = 0)
 	{
 		$filename = $this->getFileName();
-		$size = $this->fileSystem->truncateFile($filename, $size);
-		if ($size === FALSE) {
+		$res = $this->fileSystem->truncateFile($filename, $size);
+		if ($res === FALSE) {
 			return FALSE;
 		}
 		if (!in_array($this->mode, ['a', 'a+'])) {

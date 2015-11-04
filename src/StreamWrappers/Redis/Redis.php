@@ -5,7 +5,8 @@ namespace Sallyx\StreamWrappers\Redis;
 /**
  * @author petr
  */
-class Redis extends \Redis implements iRedis {
+class Redis extends \Redis implements iRedis
+{
 
 	/**
 	 * @param string $host
@@ -45,7 +46,6 @@ class Redis extends \Redis implements iRedis {
 		return parent::keys($pattern);
 	}
 
-
 	/**
 	 * @param string $key
 	 * @param string $member
@@ -74,7 +74,6 @@ class Redis extends \Redis implements iRedis {
 	{
 		return parent::hGetAll($key);
 	}
-
 
 	/**
 	 * @param string $key
@@ -143,7 +142,8 @@ class Redis extends \Redis implements iRedis {
 	/**
 	 * @param string $key
 	 */
-	public function del($key) {
+	public function del($key)
+	{
 		return parent::del($key);
 	}
 
@@ -158,10 +158,9 @@ class Redis extends \Redis implements iRedis {
 		return parent::evaluate($script, $args, $num_keys);
 	}
 
-
 	/**
 	 * @return string|NULL
-	 **/
+	 * */
 	public function getLastError()
 	{
 		return parent::getLastError();
@@ -174,4 +173,5 @@ class Redis extends \Redis implements iRedis {
 	{
 		return parent::clearLastError();
 	}
+
 }

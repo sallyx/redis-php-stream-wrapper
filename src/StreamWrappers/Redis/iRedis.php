@@ -5,7 +5,8 @@ namespace Sallyx\StreamWrappers\Redis;
 /**
  * @author petr
  */
-interface iRedis {
+interface iRedis
+{
 
 	/**
 	 * @param string $host
@@ -33,7 +34,6 @@ interface iRedis {
 	 */
 	public function keys($pattern);
 
-
 	/**
 	 * @param string $key
 	 * @param string $member
@@ -53,7 +53,6 @@ interface iRedis {
 	 * @return array
 	 */
 	public function hGetAll($key);
-
 
 	/**
 	 * @param string $key
@@ -114,10 +113,9 @@ interface iRedis {
 	 */
 	public function evaluate($script, $args, $num_keys);
 
-
 	/**
 	 * @return string|NULL
-	 **/
+	 * */
 	public function getLastError();
 
 	/**

@@ -1,19 +1,22 @@
 <?php
 
 namespace Sallyx\StreamWrappers\Redis;
+
 use Sallyx\StreamWrappers\Logger;
 
 /**
  * @author petr
  */
-class LogRedis extends \Redis implements iRedis {
+class LogRedis extends \Redis implements iRedis
+{
 
 	/**
 	 * Logger
 	 */
 	private $logger;
 
-	public function __construct(Logger $logger) {
+	public function __construct(Logger $logger)
+	{
 		parent::__construct();
 		$this->logger = $logger;
 	}
@@ -56,7 +59,6 @@ class LogRedis extends \Redis implements iRedis {
 		return $this->logMethod('keys', func_get_args());
 	}
 
-
 	/**
 	 * @param string $key
 	 * @param string $member
@@ -85,7 +87,6 @@ class LogRedis extends \Redis implements iRedis {
 	{
 		return $this->logMethod('hGetAll', func_get_args());
 	}
-
 
 	/**
 	 * @param string $key
@@ -140,7 +141,7 @@ class LogRedis extends \Redis implements iRedis {
 	{
 		$start = microtime(true);
 		$result = parent::scan($it, $pattern, $count);
-		$this->logger->log('scan', microtime(true)-$start, func_get_args(), $result);
+		$this->logger->log('scan', microtime(true) - $start, func_get_args(), $result);
 		return $result;
 	}
 
@@ -157,7 +158,8 @@ class LogRedis extends \Redis implements iRedis {
 	/**
 	 * @param string $key
 	 */
-	public function del($key) {
+	public function del($key)
+	{
 		return $this->logMethod('del', func_get_args());
 	}
 
@@ -172,10 +174,9 @@ class LogRedis extends \Redis implements iRedis {
 		return $this->logMethod('evaluate', func_get_args());
 	}
 
-
 	/**
 	 * @return string|NULL
-	 **/
+	 * */
 	public function getLastError()
 	{
 		return $this->logMethod('getLastError', func_get_args());
@@ -189,12 +190,12 @@ class LogRedis extends \Redis implements iRedis {
 		return $this->logMethod('clearLastError', func_get_args());
 	}
 
-
 	private function logMethod($method, $args)
 	{
 		$start = microtime(true);
-		$result = call_user_func_array('parent::'.$method, $args);
-		$this->logger->log($method, microtime(true)-$start, $args, $result);
+		$result = call_user_func_array('parent::' . $method, $args);
+		$this->logger->log($method, microtime(true) - $start, $args, $result);
 		return $result;
 	}
+
 }

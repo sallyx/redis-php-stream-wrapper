@@ -13,6 +13,6 @@ class RedisLogger implements Logger {
 	 * @return void
 	 */
 	public function log($method, $ms, $args, $result) {
-		printf("%5.3f - %s = %s<br />\n", $ms, $method, serialize($result));
+	// printf("%5.3f - %s = %s<br />\n", $ms, $method, serialize($result));
 	}
 }

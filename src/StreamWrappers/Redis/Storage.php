@@ -29,7 +29,8 @@ class Storage
 	 * @param string $filename
 	 * @return string
 	 */
-	private function toKey($filename) {
+	private function toKey($filename)
+	{
 		return $this->translate->toKey($filename);
 	}
 
@@ -48,8 +49,7 @@ class Storage
 	public function getDirectoryFiles($dirname)
 	{
 		return array_map(
-			array($this->translate,'toFile'),
-			$this->redis->keys($this->toKey($dirname) . '*')
+			array($this->translate, 'toFile'), $this->redis->keys($this->toKey($dirname) . '*')
 		);
 	}
 
@@ -167,7 +167,7 @@ class Storage
 	{
 		$i = 0;
 		$params = array_values($params);
-		for($i = 0; $i < $keysCount; $i++) {
+		for ($i = 0; $i < $keysCount; $i++) {
 			$params[$i] = $this->toKey($params[$i]);
 		}
 

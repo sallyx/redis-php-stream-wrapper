@@ -9,6 +9,7 @@ namespace Sallyx\StreamWrappers\Redis;
  */
 class PathTranslator
 {
+
 	/**
 	 * @var string
 	 */

@@ -1,4 +1,5 @@
 <?php
+
 require_once '../bootstrap.php';
 
 use Tester\Assert;
@@ -16,7 +17,7 @@ $context = stream_context_create(array('dir' => array('recursive' => true)));
 $file = 'redis://testfile.txt';
 $dir = 'redis://a';
 
-Assert::same(11, file_put_contents($file,'lorem ipsum'));
+Assert::same(11, file_put_contents($file, 'lorem ipsum'));
 Assert::true(mkdir($dir));
 Assert::true(is_file($file));
 Assert::true(is_dir($dir));

@@ -1,4 +1,5 @@
 <?php
+
 require_once '../bootstrap.php';
 
 use Tester\Assert;
@@ -8,96 +9,64 @@ use Sallyx\StreamWrappers\Redis\PathTranslator;
 use Sallyx\StreamWrappers\Redis\FileSystem;
 use Sallyx\StreamWrappers\Wrapper;
 
-$fs = new FileSystem(new Connector(new ConnectorConfig, new PathTranslator('test::')));
+$fs = new FileSystem(new Connector(new ConnectorConfig, new PathTranslator('fs::')));
 Assert::true(Wrapper::register($fs));
 
 $context = stream_context_create(array('dir' => array('recursive' => true)));
 @rmdir('redis://', $context);
 
-$res = fopen('redis://pokus.txt','wb', true);
-Assert::true($res !== NULL);
-$str = 'Hello World ';
-$len = fwrite($res, $str);
-Assert::same(strlen($str), $len);
-$len = fwrite($res, $str, 5);
-Assert::same(5, $len);
-Assert::true(fclose($res));
-$res = fopen('redis://pokus.txt', 'r');
-Assert::true($res !== NULL);
-$readed = fread($res, 12);
-Assert::same(12, strlen($readed));
-Assert::same('Hello World ', $readed);
-$readed = fread($res, 100);
-Assert::same(5, strlen($readed));
-Assert::same('Hello', $readed);
-Assert::true(fclose($res));
-
 Assert::error(function() {
 	$res = fopen('redis://not-exists.txt', 'r');
 }, E_WARNING);
 
-$res = fopen('redis://pokus.txt','w+');
-Assert::true($res !== NULL);
-$str = 'Hello World';
-$len = fwrite($res, $str);
-Assert::same(strlen($str), $len);
-Assert::true(fclose($res));
-$content = file_get_contents('redis://pokus.txt');
-Assert::same($str, $content);
+$filename = 'redis://pokus.txt';
+$str = 'Hello World ';
 
-$res = fopen('redis://pokus.txt','w+');
+file_put_contents($filename, $str);
+$res = fopen($filename, 'r');
 Assert::true($res !== NULL);
-$str = 'Hello World';
-$len = fwrite($res, $str);
-Assert::same(strlen($str), $len);
-Assert::true(fclose($res));
-$content = file_get_contents('redis://pokus.txt');
-Assert::same($str, $content);
-
-
-$res = fopen('redis://pokus.txt','r');
-Assert::true($res !== NULL);
-$ret = fwrite($res,'lorem ipsum');
+$ret = fwrite($res, 'lorem ipsum');
 Assert::same(0, $ret);
 Assert::true(fclose($res));
-$content = file_get_contents('redis://pokus.txt');
+$content = file_get_contents($filename);
 Assert::same($str, $content);
 
-$res = fopen('redis://pokus.txt','a');
+$res = fopen($filename, 'a');
 Assert::true($res !== NULL);
-Assert::same(0, fseek($res,  0, SEEK_SET));
+Assert::same(0, fseek($res, 0, SEEK_SET));
 $readed = fread($res, 1000);
 Assert::same('', $readed);
 Assert::true(fclose($res));
 
-$res = fopen('redis://pokus.txt','a+');
+file_put_contents($filename, 'Hello World');
+$res = fopen($filename, 'a+');
 Assert::true($res !== NULL);
-Assert::same(0, fseek($res,  -10, SEEK_END));
+Assert::same(0, fseek($res, -10, SEEK_END));
 $readed = fread($res, 5);
 Assert::same('ello ', $readed);
 $ret = fwrite($res, 'END');
 Assert::same(3, $ret);
 Assert::true(fclose($res));
-$content = file_get_contents('redis://pokus.txt');
-Assert::same($str.'END', $content);
+$content = file_get_contents($filename);
+Assert::same('Hello WorldEND', $content);
 
 $fileToRemove = 'redis://fileToRemove.txt';
 @unlink($fileToRemove); // $fileToRemove might or might not exists
 Assert::false(file_exists($fileToRemove));
-$res = fopen($fileToRemove,'w');
+$res = fopen($fileToRemove, 'w');
 Assert::true($res !== NULL);
 Assert::true(fclose($res));
-clearstatcache ();
+clearstatcache();
 Assert::true(file_exists($fileToRemove));
 unlink($fileToRemove);
-clearstatcache ();
+clearstatcache();
 Assert::false(file_exists($fileToRemove));
 Assert::error(function() {
 	unlink('redis://');
 }, E_USER_WARNING);
 
-Assert::error(function() {
-	$res = fopen('redis://pokus.txt','x');
+Assert::error(function() use($filename) {
+	$res = fopen($filename, 'x');
 }, E_WARNING);
 
 $fileToCreate = 'redis://fileToCreate.txt';
@@ -114,8 +83,8 @@ $res = fopen($fileToCreate, 'c');
 Assert::true($res !== NULL);
 Assert::true(fclose($res));
 
-Assert::error(function() {
-	$res = fopen('redis://pokus.txt','@');
+Assert::error(function() use($filename) {
+	$res = fopen($filename, '@');
 }, E_WARNING);
 
 $fileToTruncate = 'redis://fileToTruncate.txt';
@@ -154,7 +123,7 @@ Assert::false(mkdir($fileToTruncate));
 Assert::false(mkdir('redis://a/b/c/'));
 Assert::false(file_exists('redis://a'));
 Assert::true(mkdir('redis://a'));
-Assert::true(mkdir('redis://a/b/c',0700, true));
+Assert::true(mkdir('redis://a/b/c', 0700, true));
 Assert::false(rmdir('redis://a'));
 Assert::true(rmdir('redis://a/b/c'));
 Assert::false(file_exists('redis://a/b/c/'));
@@ -164,7 +133,7 @@ Assert::false(file_exists('redis://a'));
 
 $from = 'redis://file1.txt';
 $to = 'redis://file2.txt';
-@file_put_contents($from,'lorem ipsum');
+@file_put_contents($from, 'lorem ipsum');
 @unlink($to);
 Assert::error(function() use($from) {
 	rename($from, 'redis://non/existing/directory/soubor.txt');
@@ -177,4 +146,4 @@ $dir = 'redis://movehere/';
 @unlink($dir);
 @mkdir($dir);
 Assert::true(rename($to, $dir));
-Assert::true(file_exists($dir.'file2.txt'));
+Assert::true(file_exists($dir . 'file2.txt'));

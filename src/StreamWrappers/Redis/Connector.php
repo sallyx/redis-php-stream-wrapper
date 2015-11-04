@@ -6,35 +6,16 @@ use Sallyx\StreamWrappers\Logger;
 
 class Connector
 {
+
 	/**
 	 * @var PathTranslator
 	 */
 	private $translator;
 
 	/**
-	 * @var string Can be a host, or the path to a unix domain socket
+	 * @var ConnectorConfig
 	 */
-	private $host;
-
-	/**
-	 * @var int port
-	 */
-	private $port;
-
-	/**
-	 * @var float  value in seconds (optional, default is 0 meaning unlimited)
-	 */
-	private $timeout;
-
-	/**
-	 * @var string identity for the requested persistent connection
-	 */
-	private $persistent_id;
-
-	/**
-	 * @var int value in milliseconds (optional)
-	 */
-	private $retry_interval;
+	private $config;
 
 	/**
 	 * @var Storage
@@ -52,17 +33,13 @@ class Connector
 	private $keep_connected = TRUE;
 
 	/**
-	 * @param ConnectorConfig $cc
+	 * @param ConnectorConfig $config
 	 * @param PathTranslator $translator
 	 * @param Logger $logger
 	 */
-	public function __construct(ConnectorConfig $cc, PathTranslator $translator, Logger $logger = null)
+	public function __construct(ConnectorConfig $config, PathTranslator $translator, Logger $logger = null)
 	{
-		$this->host = $cc->host;
-		$this->port = $cc->port;
-		$this->timeout = $cc->timeout;
-		$this->persistent_id = $cc->persistent_id;
-		$this->retry_interval = $cc->retry_interval;
+		$this->config = $config;
 		$this->translator = $translator;
 		$this->logger = $logger;
 	}
@@ -83,13 +60,14 @@ class Connector
 		if ($this->keep_connected && $this->storage !== NULL) {
 			return $this->storage;
 		}
-		if($this->logger) {
+		if ($this->logger) {
 			$redis = new LogRedis($this->logger);
 		} else {
 			$redis = new Redis();
 		}
-		$redis->connect($this->host, $this->port, $this->timeout, $this->persistent_id, $this->retry_interval);
-		if(!$redis->isConnected()) {
+		$cc = $this->config;
+		$redis->connect($cc->host, $cc->port, $cc->timeout, $cc->persistent_id, $cc->retry_interval);
+		if (!$redis->isConnected()) {
 			return NULL;
 		}
 		$this->storage = new Storage($redis, $this->translator);

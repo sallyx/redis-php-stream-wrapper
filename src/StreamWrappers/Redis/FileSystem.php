@@ -133,7 +133,7 @@ class FileSystem implements FS
 			end;
 			if not redis.call('EXISTS', KEYS[1]) then return redis.error_reply('Source file not exists'); end;
 			return redis.call('RENAME', KEYS[1], newName);
-		", $keys, count($keys)-1);
+		", $keys, count($keys) - 1);
 	}
 
 	/**
@@ -176,16 +176,25 @@ class FileSystem implements FS
 				'size' => $fpos < 0 ? 0 : $fpos
 			);
 		}
+
 		if ($fpos < 0) {
 			$fpos = $value['size'];
 		}
+
 		$dataLen = strlen($data);
+
+		if ($fpos >= $value['size']) {
+			$value['content'] .= str_repeat("\0", $fpos - $value['size']) . $data;
+		} else {
+			$value['content'] = substr($value['content'], 0, $fpos) . $data . substr($value['content'], $fpos + $dataLen);
+		}
+
 		$value['atime'] = $value['mtime'] = time();
-		$value['content'] = substr($value['content'], 0, $fpos) . $data;
-		$value['size'] += $dataLen;
+		$value['size'] = strlen($value['content']);
 		if (!$this->storage->setFileProperties($filename, $value)) {
 			return 0;
 		}
+
 		return $dataLen;
 	}
 
