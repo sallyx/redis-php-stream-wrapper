@@ -236,7 +236,7 @@ class Wrapper
 	public function stream_eof()
 	{
 		$len = $this->fileSystem->getFileSize($this->getFileName());
-		return ($this->fpos < $len);
+		return $this->fpos >= $len;
 	}
 
 	/**
