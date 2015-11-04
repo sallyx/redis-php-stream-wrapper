@@ -14,12 +14,12 @@ class Storage
 {
 
 	/**
-	 * @var \Redis
+	 * @var iRedis
 	 */
 	private $redis;
 	private $translate;
 
-	public function __construct(\Redis $redis, PathTranslator $translator)
+	public function __construct(iRedis $redis, PathTranslator $translator)
 	{
 		$this->redis = $redis;
 		$this->translate = $translator;

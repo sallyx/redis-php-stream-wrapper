@@ -3,11 +3,12 @@ require_once '../bootstrap.php';
 
 use Tester\Assert;
 use Sallyx\StreamWrappers\Redis\Connector;
+use Sallyx\StreamWrappers\Redis\ConnectorConfig;
 use Sallyx\StreamWrappers\Redis\PathTranslator;
 use Sallyx\StreamWrappers\Redis\FileSystem;
 use Sallyx\StreamWrappers\Wrapper;
 
-$fs = new FileSystem(new Connector(new PathTranslator('lock::')));
+$fs = new FileSystem(new Connector(new ConnectorConfig, new PathTranslator('lock::')));
 Assert::true(Wrapper::register($fs));
 
 $context = stream_context_create(array('dir' => array('recursive' => true)));
@@ -43,3 +44,13 @@ Assert::true(fclose($fs3));
 Assert::true(flock($fs, LOCK_SH));
 Assert::true(flock($fs, LOCK_UN));
 Assert::true(fclose($fs));
+
+$fs1 = fopen($lockFile,'r+');
+Assert::true($fs1 !== NULL);
+Assert::true(flock($fs1, LOCK_EX | LOCK_NB));
+$fs1 = NULL;
+$fs1 = fopen($lockFile,'r+');
+Assert::true($fs1 !== NULL);
+Assert::true(flock($fs1, LOCK_EX | LOCK_NB));
+Assert::true(flock($fs1, LOCK_UN));
+Assert::true(fclose($fs1));

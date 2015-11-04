@@ -3,11 +3,12 @@ require_once '../bootstrap.php';
 
 use Tester\Assert;
 use Sallyx\StreamWrappers\Redis\Connector;
+use Sallyx\StreamWrappers\Redis\ConnectorConfig;
 use Sallyx\StreamWrappers\Redis\PathTranslator;
 use Sallyx\StreamWrappers\Redis\FileSystem;
 use Sallyx\StreamWrappers\Wrapper;
 
-$fs = new FileSystem(new Connector (new PathTranslator('sallyx::')));
+$fs = new FileSystem(new Connector(new ConnectorConfig, new PathTranslator('test::')));
 Assert::true(Wrapper::register($fs));
 
 $context = stream_context_create(array('dir' => array('recursive' => true)));

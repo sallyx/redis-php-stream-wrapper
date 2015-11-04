@@ -77,7 +77,11 @@ class Wrapper
 	 */
 	public function __destruct()
 	{
-
+		if ($this->lockType !== NULL) {
+			$this->stream_lock(LOCK_UN);
+		}
+		$this->fileSystem->disconnect();
+		$this->fileSystem = NULL;
 	}
 
 	/**
@@ -85,8 +89,6 @@ class Wrapper
 	 */
 	public function dir_closedir()
 	{
-		$this->fileSystem->disconnect();
-		$this->fileSystem = NULL;
 		$this->dirEntries = NULL;
 		return TRUE;
 	}
