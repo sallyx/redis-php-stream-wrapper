@@ -3,17 +3,9 @@
 require_once '../bootstrap.php';
 
 use Tester\Assert;
-use Sallyx\StreamWrappers\Redis\Connector;
-use Sallyx\StreamWrappers\Redis\ConnectorConfig;
-use Sallyx\StreamWrappers\Redis\PathTranslator;
-use Sallyx\StreamWrappers\Redis\FileSystem;
-use Sallyx\StreamWrappers\Wrapper;
 
-$fs = new FileSystem(new Connector(new ConnectorConfig, new PathTranslator('lock::')));
-Assert::true(Wrapper::register($fs));
+_register_wrapper('lock::');
 
-$context = stream_context_create(array('dir' => array('recursive' => true)));
-@rmdir('redis://', $context);
 $lockFile = 'redis://lockfile.txt';
 $lockFile2 = 'redis://lockfile.txt';
 Assert::same(11, file_put_contents($lockFile, 'lorem ipsum'));

@@ -120,16 +120,15 @@ class FileSystem implements FS
 		$keys = array($filenameFrom, $filenameTo, $dirname, basename($filenameFrom));
 		return $this->storage->evaluate("
 			local dir_type, file_type, newName;
-			local dir_type = redis.call('HGET',KEYS[3], 'type');
+			dir_type = redis.call('HGET',KEYS[3], 'type');
 			file_type = redis.call('HGET',KEYS[2],'type');
 			if dir_type ~= 'd' then return redis.error_reply('Directory '..KEYS[3]..' not exists'); end;
-			if (file_type ~= 'd' and file_type ~= false) then return redis.error_reply('File exists and not directory') end;
 			newName = KEYS[2];
 			if file_type == 'd'
 			then
 				newName = newName..'/'..ARGV[1];
-				local ex = redis.call('EXISTS', newName);
-				if ex ~= 0 then return redis.error_reply('File '..newName..' exists '..ex) end;
+				file_type = redis.call('HGET', newName, 'type');
+				if file_type ~= 'f' and file_type ~= false then return redis.error_reply('File '..newName..' exists ') end;
 			end;
 			if not redis.call('EXISTS', KEYS[1]) then return redis.error_reply('Source file not exists'); end;
 			return redis.call('RENAME', KEYS[1], newName);
@@ -301,11 +300,16 @@ class FileSystem implements FS
 	public function isDirectoryEmpty($filename)
 	{
 		$it = NULL;
-		$keys = $this->storage->scanDirectory($filename, 100, $it);
-		if ($it === 0 && count($keys) === 1) {
-			return TRUE;
-		}
-		return FALSE;
+		$c = 0;
+		do {
+			$keys = $this->storage->scanDirectory($filename, 100, $it);
+			$c += count($keys);
+			if(in_array($filename, $keys)) {
+				$c--;
+			}
+			if($c > 1) return FALSE;
+		} while($it !== 0);
+		return TRUE;
 	}
 
 	/**

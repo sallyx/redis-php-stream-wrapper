@@ -3,14 +3,8 @@
 require_once '../bootstrap.php';
 
 use Tester\Assert;
-use Sallyx\StreamWrappers\Redis\Connector;
-use Sallyx\StreamWrappers\Redis\ConnectorConfig;
-use Sallyx\StreamWrappers\Redis\PathTranslator;
-use Sallyx\StreamWrappers\Redis\FileSystem;
-use Sallyx\StreamWrappers\Wrapper;
 
-$fs = new FileSystem(new Connector(new ConnectorConfig, new PathTranslator('normalize-name::')));
-Assert::true(Wrapper::register($fs));
+_register_wrapper('normalize-name::');
 
 $context = stream_context_create(array('dir' => array('recursive' => true)));
 @rmdir('redis://', $context);

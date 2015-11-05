@@ -143,7 +143,11 @@ class Storage
 	public function scanDirectory($dirname, $count, &$it)
 	{
 		$dirname = $this->toKey($dirname);
-		return $this->redis->scan($it, $dirname . '*', $count);
+		$res = $this->redis->scan($it, $dirname . '*', $count);
+		if ($res === FALSE) {
+			return FALSE;
+		}
+		return array_map(array($this->translate, 'toFile'), $res);
 	}
 
 	/**

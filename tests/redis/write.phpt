@@ -2,18 +2,9 @@
 
 require_once '../bootstrap.php';
 
+_register_wrapper('write::');
+
 use Tester\Assert;
-use Sallyx\StreamWrappers\Redis\Connector;
-use Sallyx\StreamWrappers\Redis\ConnectorConfig;
-use Sallyx\StreamWrappers\Redis\PathTranslator;
-use Sallyx\StreamWrappers\Redis\FileSystem;
-use Sallyx\StreamWrappers\Wrapper;
-
-$fs = new FileSystem(new Connector(new ConnectorConfig, new PathTranslator('write::')));
-Assert::true(Wrapper::register($fs));
-
-$context = stream_context_create(array('dir' => array('recursive' => true)));
-@rmdir('redis://', $context);
 
 $filename = 'redis://pokus.txt';
 

@@ -3,17 +3,8 @@
 require_once '../bootstrap.php';
 
 use Tester\Assert;
-use Sallyx\StreamWrappers\Redis\Connector;
-use Sallyx\StreamWrappers\Redis\ConnectorConfig;
-use Sallyx\StreamWrappers\Redis\PathTranslator;
-use Sallyx\StreamWrappers\Redis\FileSystem;
-use Sallyx\StreamWrappers\Wrapper;
 
-$fs = new FileSystem(new Connector(new ConnectorConfig, new PathTranslator('fs::')));
-Assert::true(Wrapper::register($fs));
-
-$context = stream_context_create(array('dir' => array('recursive' => true)));
-@rmdir('redis://', $context);
+_register_wrapper('fs::');
 
 Assert::error(function() {
 	$res = fopen('redis://not-exists.txt', 'r');
@@ -145,7 +136,8 @@ Assert::true(rename($from, $to));
 Assert::true(file_exists($to));
 Assert::false(file_exists($from));
 $dir = 'redis://movehere/';
+$from = $to;
 @unlink($dir);
 @mkdir($dir);
-Assert::true(rename($to, $dir));
+Assert::true(rename($from, $dir));
 Assert::true(file_exists($dir . 'file2.txt'));

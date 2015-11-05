@@ -210,9 +210,9 @@ class Wrapper
 		}
 
 		$type = $this->fileSystem->getFileType($filename);
-		if ($type !== FileSystem::FILE_TYPE_DIRECTORY)
+		if ($type !== FileSystem::FILE_TYPE_DIRECTORY) {
 			return FALSE;
-		if (!$recursive) {
+		} if (!$recursive) {
 			$c = $this->fileSystem->isDirectoryEmpty($filename);
 			if (!$c) {
 				return FALSE;
