@@ -74,3 +74,12 @@ $connector = new Connector($config, $translator);
 $fs = new FileSystem($connector);
 Wrapper::register($fs);
 ```
+
+## Known issues
+
+If your PHP script ends unexpectedly, all locked files stay locked forever.
+You can unlock them in redis by this command:
+
+```
+HMSET www.example.org://foo/bar.txt lock_ex 0 lock_sh 0
+```
