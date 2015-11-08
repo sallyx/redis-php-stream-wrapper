@@ -1,0 +1,7 @@
+#tracy-debug .sallyx-streamWrappers-fileBrowser-directory {float:left;width:65%;word-wrap:break-word;}
+#tracy-debug .sallyx-streamWrappers-fileBrowser-buttons {float:right;width:35%;text-align:right;}
+#tracy-debug .sallyx-streamWrappers-fileBrowser-buttons span {padding:3px 3px;background-color:#f4f3f1; cursor:pointer;}
+#tracy-debug .sallyx-streamWrappers-fileBrowser-buttons span.current {font-weight:bold;}
+#tracy-debug .sallyx-streamWrappers-fileBrowser-clearfix {clear:both;}
+#tracy-debug .sallyx-streamWrappers-fileBrowser-table {width:100%;margin-top:5px;}
+#tracy-debug .sallyx-streamWrappers-fileBrowser-footer {font-style: italic;text-align:right;margin-right:5px;}

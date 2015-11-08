@@ -60,6 +60,7 @@ class Storage
 				end;
 			end;
 			return files", array($dirname), 1);
+
 		return array_map(
 			array($this->translate, 'toFile'), $keys
 		);

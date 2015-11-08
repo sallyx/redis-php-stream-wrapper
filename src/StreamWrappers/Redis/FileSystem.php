@@ -53,7 +53,12 @@ class FileSystem implements FS
 	 */
 	public function getDirectoryIterator($dirname)
 	{
-		$files = $this->storage->getDirectoryFiles($dirname);
+		$files = array();
+		$parent = dirname($dirname);
+		if($parent && $parent !== $dirname) {
+			$files = array($parent);
+		}
+		$files = array_merge($files, $this->storage->getDirectoryFiles($dirname));
 		if (!is_array($files)) {
 			return NULL;
 		}
