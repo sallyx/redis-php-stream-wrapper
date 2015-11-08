@@ -62,7 +62,7 @@ foreach($handle as $file => $info) {
 Assert::same(['.', '..', 'aa', 'bb', 'cc', 'pokus.txt'], $files);
 
 $path = 'redis://';
-$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path));
+$iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
 $files = [];
 foreach($iterator as $name => $object){
 	$files[] = $name;

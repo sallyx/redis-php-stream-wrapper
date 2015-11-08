@@ -41,8 +41,6 @@ else {
 		});
 		$content.on('click', '.sallyx-streamWrappers-fileBrowser-buttons span.l a', function(event) {
 			event.preventDefault();
-			alert('Not implemented yet');
-			return false;
 			var link = $(this).attr('href');
 			doAjax(link, {});
 			return false;

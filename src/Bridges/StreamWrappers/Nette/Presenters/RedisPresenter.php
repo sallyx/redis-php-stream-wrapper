@@ -95,28 +95,30 @@ class RedisPresenter extends Presenter
 	public function renderLocked()
 	{
 		$files = array();
-		$dir = $this->scheme . '://' . $this->dir;
+		$dir = $this->scheme . ':/' . $this->dir;
 		$this->returnIfFile($dir);
-		//TODO: recursive directory iterator not working
-		$handle = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \FilesystemIterator::CURRENT_AS_FILEINFO));
+		$handle = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir));
 
-		foreach ($handle as $file => $stat) {
-			var_dump('ajaj', $file, $stat);
-			$path = '/' . substr($file, strlen($this->scheme) + 3);
-			if ($dir === $file) {
-				$name = '.';
-			} else {
-				$name = $dir < $file ? basename($path) : '..';
+		foreach ($handle as $file => $info) {
+			$path = substr($file, strlen($this->scheme)+2);
+			if(substr($path,-3) === '/..') {
+				continue;
 			}
-
+			if(substr($path,-2) === '/.') {
+				$path = substr($path, 0, -2);
+			}
+			$lock_sh = $this->fileSystem->getFileSharedLocksCount($path);
+			$lock_ex = $this->fileSystem->hasFileExclusiveLock($path) ? '1' : '0';
+			if(!$lock_sh && !$lock_ex) continue;
+			$name = $path;
 			$files[$file] = (object) array(
 					'file' => $file,
 					'path' => $path,
 					'name' => $name,
 					'stat' => lstat($file),
 					'filetype' => filetype($file),
-					'lock_sh' => $this->fileSystem->getFileSharedLocksCount($path),
-					'lock_ex' => $this->fileSystem->hasFileExclusiveLock($path) ? '1' : '0'
+					'lock_sh' => $lock_sh,
+					'lock_ex' => $lock_ex
 			);
 		}
 
