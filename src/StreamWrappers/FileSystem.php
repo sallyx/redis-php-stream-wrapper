@@ -144,6 +144,12 @@ interface FileSystem
 
 	/**
 	 * @param string $filename
+	 * @return int
+	 */
+	public function getFileSharedLocksCount($filename);
+
+	/**
+	 * @param string $filename
 	 * @return boolean
 	 */
 	public function setExclusiveLock($filename);
@@ -173,4 +179,14 @@ interface FileSystem
 	 * @return boolean
 	 */
 	public function tryRelock($filename, $from, $to);
+
+	/**
+	 * Change file $mtime and $atime.
+	 * Create if not exists.
+	 * @param strting $filename
+	 * @param string $mtime
+	 * @param string $atime
+	 * @return boolean
+	 */
+	public function touch($filename, $mtime, $atime);
 }

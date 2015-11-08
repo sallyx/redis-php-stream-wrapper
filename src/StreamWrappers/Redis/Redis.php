@@ -124,7 +124,7 @@ class Redis extends \Redis implements iRedis
 	 * @param int $count
 	 * @return array|FALSE
 	 */
-	public function scan(&$it, $pattern, $count)
+	public function scan(&$it, $pattern = NULL, $count = NULL)
 	{
 		return parent::scan($it, $pattern, $count);
 	}

@@ -66,6 +66,26 @@ class Wrapper
 	}
 
 	/**
+	 * @return array[string]FileSystem
+	 */
+	public static function getRegisteredWrappers()
+	{
+		return self::$fileSystems;
+	}
+
+	/**
+	 * @param string $wrapperName
+	 * @return FileSystem|NULL
+	 */
+	public static function getRegisteredWrapper($wrapperName)
+	{
+		if (empty(self::$fileSystems[$wrapperName])) {
+			return NULL;
+		}
+		return self::$fileSystems[$wrapperName];
+	}
+
+	/**
 	 * Constructor
 	 */
 	public function __construct()
@@ -81,8 +101,10 @@ class Wrapper
 		if ($this->lockType !== NULL) {
 			$this->stream_lock(LOCK_UN);
 		}
-		$this->fileSystem->disconnect();
-		$this->fileSystem = NULL;
+		if ($this->fileSystem !== NULL) {
+			$this->fileSystem->disconnect();
+			$this->fileSystem = NULL;
+		}
 	}
 
 	/**
@@ -342,6 +364,22 @@ class Wrapper
 	}
 
 	/**
+	 * Change stream options
+	 */
+	public function stream_metadata($path, $option, $value)
+	{
+		if (!$this->initPath($path)) {
+			return FALSE;
+		}
+		if ($option !== STREAM_META_TOUCH) {
+			return FALSE;
+		}
+		$mtime = isset($value[0]) ? $value[0] : time();
+		$atime = isset($value[1]) ? $value[1] : $mtime;
+		return $this->fileSystem->touch($this->getFilename(), $mtime, $atime);
+	}
+
+	/**
 	 * Opens file or URL
 	 */
 	public function stream_open($path, $mode, $options, &$opened_path)
@@ -440,7 +478,8 @@ class Wrapper
 	 */
 	public function stream_stat()
 	{
-		return $this->fileSystem->getStat($this->getFileName());
+		$stat = $this->fileSystem->getStat($this->getFileName());
+		return $stat;
 	}
 
 	/**
@@ -507,12 +546,14 @@ class Wrapper
 	 */
 	public function url_stat($path, $flags)
 	{
-		if ($flags & STREAM_URL_STAT_LINK || !$this->initPath($path)) {
-			if ($flags & STREAM_URL_STAT_QUIET) {
-				return array();
-			}
-			trigger_error('Unsupported operation on file ' . $path, E_USER_WARNING);
+		if (!$this->initPath($path)) {
 			return array();
+		}
+		if ($flags & STREAM_URL_STAT_LINK) {
+			// stat on the symlinks , not linked files
+			if ($flags & STREAM_URL_STAT_QUIET) {
+				// do not throw errores
+			}
 		}
 		return $this->stream_stat();
 	}

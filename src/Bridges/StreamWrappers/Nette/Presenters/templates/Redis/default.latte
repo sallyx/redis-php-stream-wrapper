@@ -1,0 +1,22 @@
+{* Latte template *}
+
+{block content}
+
+<div class="sallyx-streamWrappers-fileBrowser-directory">[{$dir}]</div>
+
+<table class="table">
+    <thead>
+        <tr><th>Type</th><th>Path</th><th>mtime</th><th>lock_sh</th><th>lock_ex</th></tr>
+    </thead>
+    <tbody>
+        {foreach $files as $file}
+            <tr>
+                <td>{$file->filetype}</td>
+                <td>{$file->path}</td>
+                <td>{$file->stat['mtime']|date}</td>
+                <td>{$file->lock_sh}</td>
+                <td>{$file->lock_ex}</td>
+            </tr>
+        {/foreach}
+    </tbody>
+</table>

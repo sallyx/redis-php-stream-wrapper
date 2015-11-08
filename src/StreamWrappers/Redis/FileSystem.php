@@ -304,11 +304,12 @@ class FileSystem implements FS
 		do {
 			$keys = $this->storage->scanDirectory($filename, 100, $it);
 			$c += count($keys);
-			if(in_array($filename, $keys)) {
+			if (in_array($filename, $keys)) {
 				$c--;
 			}
-			if($c > 1) return FALSE;
-		} while($it !== 0);
+			if ($c > 1)
+				return FALSE;
+		} while ($it !== 0);
 		return TRUE;
 	}
 
@@ -341,7 +342,7 @@ class FileSystem implements FS
 	 */
 	public function getStat($filename)
 	{
-		$file = $this->storage->getFileProperties($filename, array('size', 'atime', 'mtime', 'ctime', 'type'));
+		$file = $this->storage->getFileProperties($filename, array('size', 'atime', 'mtime', 'ctime', 'type', 'lock_sh', 'lock_ex'));
 
 		if ($file['ctime'] === FALSE) {
 			return NULL;
@@ -366,7 +367,10 @@ class FileSystem implements FS
 			'mtime' => $file['mtime'],
 			'ctime' => $file['ctime'],
 			'blksize' => -1,
-			'blocks' => -1
+			'blocks' => -1,
+			//extra properites
+			'lock_sh' => $file['lock_sh'],
+			'lock_ex' => $file['lock_ex']
 		);
 
 		return array_merge(array_values($values), $values);
@@ -388,6 +392,15 @@ class FileSystem implements FS
 	public function hasFileExclusiveLock($filename)
 	{
 		return "0" !== $this->storage->getFileProperty($filename, 'lock_ex');
+	}
+
+	/**
+	 * @param string $filename
+	 * @return int
+	 */
+	public function getFileSharedLocksCount($filename)
+	{
+		return $this->storage->getFileProperty($filename, 'lock_sh');
 	}
 
 	/**
@@ -478,6 +491,34 @@ class FileSystem implements FS
 		}
 
 		return FALSE;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	private function fileExists($filenamea)
+	{
+		return FALSE !== $this->getFileType($filename);
+	}
+
+	/**
+	 * Change file $mtime and $atime.
+	 * Create if not exists.
+	 * @param strting $filename
+	 * @param string $mtime
+	 * @param string $atime
+	 * @return boolean
+	 */
+	public function touch($filename, $mtime, $atime)
+	{
+		$fileType = $this->getFileType($filename);
+		if ($fileType === FALSE) {
+			if (!$this->createFile($filename)) {
+				trigger_error("Cannot create file '$filename'", E_USER_WARNING);
+				return FALSE;
+			}
+		}
+		return $this->storage->setFileProperties($filename, ['mtime' => $mtime, 'atime' => $atime]);
 	}
 
 }

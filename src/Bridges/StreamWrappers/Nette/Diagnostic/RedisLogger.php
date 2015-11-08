@@ -1,5 +1,5 @@
 <?php
-namespace Sallyx\Bridges\StreamWrappers\Nette\Tracy;
+namespace Sallyx\Bridges\StreamWrappers\Nette\Diagnostic;
 
 use Sallyx\StreamWrappers\Logger;
 
@@ -13,6 +13,6 @@ class RedisLogger implements Logger {
 	 * @return void
 	 */
 	public function log($method, $ms, $args, $result) {
-	// printf("%5.3f - %s = %s<br />\n", $ms, $method, serialize($result));
+		printf("%5.3f - %s = %s<br />\n", $ms, $method, serialize($result));
 	}
 }

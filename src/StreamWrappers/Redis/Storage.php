@@ -48,8 +48,20 @@ class Storage
 	 */
 	public function getDirectoryFiles($dirname)
 	{
+		$keys = $this->evaluate("
+			local files = {}
+			local i = 0
+			for _, k in ipairs(redis.call('keys', KEYS[1]..'*'))
+			do
+				if string.find(k,'^'..KEYS[1]..'/?[^/]*$')
+				then
+					i = i+1;
+					files[i] = k;
+				end;
+			end;
+			return files", array($dirname), 1);
 		return array_map(
-			array($this->translate, 'toFile'), $this->redis->keys($this->toKey($dirname) . '*')
+			array($this->translate, 'toFile'), $keys
 		);
 	}
 

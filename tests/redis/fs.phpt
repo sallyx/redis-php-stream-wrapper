@@ -94,35 +94,6 @@ Assert::true(fclose($res));
 Assert::same(10, strlen(file_get_contents($fileToTruncate)));
 
 
-//DIRECTORIES
-$res = opendir('redis://');
-Assert::true($res !== NULL);
-closedir($res);
-
-$res = opendir('redis://');
-Assert::true($res !== NULL);
-$files = [];
-while (false !== ($file = readdir($res))) {
-	$files[] = $file;
-}
-Assert::contains('redis://', $files);
-Assert::contains($fileToTruncate, $files);
-rewinddir($res);
-Assert::same('redis://', readdir($res));
-
-closedir($res);
-
-Assert::false(mkdir($fileToTruncate));
-Assert::false(mkdir('redis://a/b/c/'));
-Assert::false(file_exists('redis://a'));
-Assert::true(mkdir('redis://a'));
-Assert::true(mkdir('redis://a/b/c', 0700, true));
-Assert::false(rmdir('redis://a'));
-Assert::true(rmdir('redis://a/b/c'));
-Assert::false(file_exists('redis://a/b/c/'));
-$context = stream_context_create(array('dir' => array('recursive' => true)));
-Assert::true(rmdir('redis://a', $context));
-Assert::false(file_exists('redis://a'));
 
 $from = 'redis://file1.txt';
 $to = 'redis://file2.txt';
