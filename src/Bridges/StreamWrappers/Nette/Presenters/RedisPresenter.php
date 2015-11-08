@@ -37,7 +37,7 @@ class RedisPresenter extends Presenter
 			$this->scheme = $scheme;
 			$this->fileSystem = Wrapper::getRegisteredWrapper($this->scheme);
 		}
-		$this->dir = trim($dir, '/');
+		$this->dir = rtrim($dir,'/').'/';
 		if (!($this->fileSystem instanceof FileSystem)) {
 			echo 'Unkown filesystem ' . $this->scheme . '://. Is it registered?';
 			$this->terminate();
@@ -61,18 +61,20 @@ class RedisPresenter extends Presenter
 	public function renderDefault()
 	{
 		$files = array();
-		$dir = $this->scheme . '://' . $this->dir;
+		$dir = $this->scheme . ':/' . $this->dir;
 		$this->returnIfFile($dir);
 
 		$handle = opendir($dir);
-		while ($file = readdir($handle)) {
-			$path = '/' . substr($file, strlen($this->scheme) + 3);
-			if ($dir === $file) {
-				$name = '.';
+		while ($name = readdir($handle)) {
+			if($name == '.') {
+				$path = $this->dir;
+			} elseif ($name == '..') {
+				$path = dirname($this->dir);
 			} else {
-				$name = $dir < $file ? basename($path) : '..';
+				$path = $this->dir.$name;
 			}
 
+			$file = $dir.$name;
 			$files[$file] = (object) array(
 					'file' => $file,
 					'path' => $path,
@@ -96,7 +98,7 @@ class RedisPresenter extends Presenter
 		$dir = $this->scheme . '://' . $this->dir;
 		$this->returnIfFile($dir);
 		//TODO: recursive directory iterator not working
-		$handle = new \RecursiveDirectoryIterator($dir, \FilesystemIterator::CURRENT_AS_FILEINFO);
+		$handle = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \FilesystemIterator::CURRENT_AS_FILEINFO));
 
 		foreach ($handle as $file => $stat) {
 			var_dump('ajaj', $file, $stat);

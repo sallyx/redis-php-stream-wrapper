@@ -56,7 +56,7 @@ class FileSystem implements FS
 		$files = array();
 		$parent = dirname($dirname);
 		if($parent && $parent !== $dirname) {
-			$files = array($parent);
+			$files = array('..');
 		}
 		$files = array_merge($files, $this->storage->getDirectoryFiles($dirname));
 		if (!is_array($files)) {
@@ -396,7 +396,9 @@ class FileSystem implements FS
 	 */
 	public function hasFileExclusiveLock($filename)
 	{
-		return "0" !== $this->storage->getFileProperty($filename, 'lock_ex');
+		$filename = rtrim($filename, '/');
+		$filename = $filename ?: '/';
+		return "1" === $this->storage->getFileProperty($filename, 'lock_ex');
 	}
 
 	/**
@@ -405,6 +407,8 @@ class FileSystem implements FS
 	 */
 	public function getFileSharedLocksCount($filename)
 	{
+		$filename = rtrim($filename, '/');
+		$filename = $filename ?: '/';
 		return $this->storage->getFileProperty($filename, 'lock_sh');
 	}
 

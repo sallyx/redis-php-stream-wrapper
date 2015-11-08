@@ -150,7 +150,7 @@ class Wrapper
 		}
 		$filename = $this->dirEntries->current();
 		$this->dirEntries->next();
-		return $this->scheme . ':/' . $filename;
+		return $filename;
 	}
 
 	/**

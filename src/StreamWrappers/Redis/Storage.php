@@ -60,10 +60,15 @@ class Storage
 				end;
 			end;
 			return files", array($dirname), 1);
-
-		return array_map(
-			array($this->translate, 'toFile'), $keys
-		);
+		$that = $this;
+		$dirlen = strlen($dirname);
+		if($dirlen > 1) $dirlen++; // remove left slash
+		$result = array_map(function($key) use ($that, $dirlen) {
+				$file = $that->translate->toFile($key);
+				$file = substr($file, $dirlen) ?: '.';
+				return $file;
+		}, $keys);
+		return $result;
 	}
 
 	/**
