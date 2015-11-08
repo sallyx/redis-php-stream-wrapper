@@ -50,7 +50,7 @@ use Sallyx\StreamWrappers\Wrapper;
 Wrapper::register($fs,'redis'); // 'redis' is a scheme  name of the wrapper ('redis:// ...')
 ```
 
-## 6. Profit
+### 6. Profit
 
 ```php
 mkdir('redis://foo');
@@ -59,7 +59,7 @@ echo file_get_contents('redis://foo/bar.txt');
 ...
 ```
 
-## All together:
+### All together:
 
 ```php
 use Sallyx\StreamWrappers\Redis\ConnectorConfig;
