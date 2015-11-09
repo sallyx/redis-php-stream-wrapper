@@ -1,6 +1,8 @@
 # redis-php-stream-wrapper
 
 [![Build Status](https://travis-ci.org/sallyx/redis-php-stream-wrapper.svg?branch=master)](https://travis-ci.org/sallyx/redis-php-stream-wrapper)
+[![Latest Stable Version](https://poser.pugx.org/sallyx/redis-php-stream-wrapper/v/stable)](https://packagist.org/packages/sallyx/redis-php-stream-wrapper)
+[![License](https://poser.pugx.org/sallyx/redis-php-stream-wrapper/license)](https://packagist.org/packages/sallyx/redis-php-stream-wrapper)
 
 This package allows you to register redis server as [php stream wrapper](http://php.net/manual/en/intro.stream.php),
 so you will be able to use redis as as stream resource, i.e. 'redis://foo.txt'
@@ -117,7 +119,7 @@ Optionally, you can use StreamWrappersExtension in app/config/config.local.neon,
 extension:
         streamWrappers: Sallyx\Bridges\StreamWrappers\Nette\DI\StreamWrappersExtension
 ```
-Now you could see your redis filesystem in the pane:
+Now you could see your redis filesystem in the panel:
 
 ![diagnostic panel](assets/diagnostic-panel.png)
 
