@@ -12,7 +12,6 @@ use Sallyx\StreamWrappers\FSLock;
  */
 class Storage
 {
-
 	/**
 	 * @var iRedis
 	 */
@@ -218,4 +217,35 @@ class Storage
 		return new Lock($redLock, $this->translate);
 	}
 
+
+	/**
+	 * @param string $filename
+	 * @param int $fpos
+	 * @param int $count
+	 * @return string|NULL
+	 */
+	public function readFileContent($filename, $fpos, $count)
+	{
+		$file = $this->getFileProperties(
+			$filename, array('type', 'content')
+		);
+		if (empty($file)) {
+			return NULL;
+		}
+		if ($file['type'] !== FileSystem::FILE_TYPE_FILE) {
+			return NULL;
+		}
+		$str = substr($file['content'], $fpos, $count);
+
+		$ret = $this->evaluate("
+			local type = redis.call('hget', KEYS[1], 'type')
+			if type ~= ARGV[1] then return nil; end;
+			local content = redis.call('hget', KEYS[1], 'content')
+			return string.sub(content, ARGV[2]+1, ARGV[2]+ARGV[3]-1)
+		", array($filename, Filesystem::FILE_TYPE_FILE, $fpos, $count), 1);
+		if(!strlen($ret)) {
+			return NULL;
+		}
+		return $ret;
+	}
 }

@@ -148,17 +148,7 @@ class FileSystem implements FS
 	 */
 	public function read($filename, $fpos, $count)
 	{
-		$file = $this->storage->getFileProperties(
-			$filename, array('type', 'content')
-		);
-		if (empty($file)) {
-			return NULL;
-		}
-		if ($file['type'] !== FileSystem::FILE_TYPE_FILE) {
-			return NULL;
-		}
-
-		return substr($file['content'], $fpos, $count);
+		return $this->storage->readFileContent($filename, $fpos, $count);
 	}
 
 	/**
