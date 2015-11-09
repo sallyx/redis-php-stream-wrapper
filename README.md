@@ -9,10 +9,12 @@ so you will be able to use redis as as stream resource, i.e. 'redis://foo.txt'
 
 ### 1. Install phpredis/phpredis
 
-### 2. Install this package by composer
+See ![phpredis/phpredis](https://github.com/phpredis/phpredis).
 
-```
-composer require sallyx/redis-php-stream-wrapper
+### 2. Install packages by composer
+
+```sh
+$ composer require sallyx/redis-php-stream-wrapper
 ```
 
 ## Setup
@@ -86,6 +88,38 @@ file_put_contents('redis://foo/bar.txt', 'hello world');
 echo file_get_contents('redis://foo/bar.txt');
 ...
 ```
+
+## Using with Nette
+
+If you do not know Nette, have a look at [www.nette.org](https://www.nette.org) or skip this block :)
+
+First put [setup](/README.md#user-content-setup/) into app/bootstrap.php or anywhere before you want to
+use redis stream wrapper. Then you can use redis for example for temp directory:
+
+```php
+use Sallyx\StreamWrappers\Redis\Connector;
+use Sallyx\StreamWrappers\Redis\ConnectorConfig;
+use Sallyx\StreamWrappers\Redis\PathTranslator;
+use Sallyx\StreamWrappers\Redis\FileSystem;
+use Sallyx\StreamWrappers\Wrapper;
+
+$cc = new ConnectorConfig();
+$con = new Connector($cc, new PathTranslator('www.example.org'));
+Wrapper::register(new FileSystem($co));
+//...
+$configurator->enableDebugger('redis://log');
+$configurator->setTempDirectory('redis://temp');
+//...
+```
+Optionally, you can use StreamWrappersExtension in app/config/config.local.neon, which show diagnostic panel in debugger bar.
+
+```
+extension:
+        streamWrappers: Sallyx\Bridges\StreamWrappers\Nette\DI\StreamWrappersExtension
+```
+Now you could see your redis filesystem in the pane:
+
+![diagnostic panel](assets/diagnostic-panel.png)
 
 ## Known issues
 
