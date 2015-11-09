@@ -17,9 +17,13 @@ class Storage
 	 * @var iRedis
 	 */
 	private $redis;
+
+	/**
+	 * @var iPathTranslator
+	 */
 	private $translate;
 
-	public function __construct(iRedis $redis, PathTranslator $translator)
+	public function __construct(iRedis $redis, iPathTranslator $translator)
 	{
 		$this->redis = $redis;
 		$this->translate = $translator;
@@ -62,11 +66,12 @@ class Storage
 			return files", array($dirname), 1);
 		$that = $this;
 		$dirlen = strlen($dirname);
-		if($dirlen > 1) $dirlen++; // remove left slash
+		if ($dirlen > 1)
+			$dirlen++; // remove left slash
 		$result = array_map(function($key) use ($that, $dirlen) {
-				$file = $that->translate->toFile($key);
-				$file = substr($file, $dirlen) ?: '.';
-				return $file;
+			$file = $that->translate->toFile($key);
+			$file = substr($file, $dirlen) ? : '.';
+			return $file;
 		}, $keys);
 		return $result;
 	}

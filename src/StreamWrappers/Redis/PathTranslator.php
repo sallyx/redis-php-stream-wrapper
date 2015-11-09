@@ -7,7 +7,7 @@ namespace Sallyx\StreamWrappers\Redis;
  *
  * @author petr
  */
-class PathTranslator
+class PathTranslator implements iPathTranslator
 {
 
 	/**

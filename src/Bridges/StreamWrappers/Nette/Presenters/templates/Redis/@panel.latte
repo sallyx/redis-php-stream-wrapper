@@ -1,0 +1,37 @@
+{* Latte template *}
+
+{block content}
+
+<div class="sallyx-streamWrappers-fileBrowser-buttons">
+    <span title="refresh" class="r">
+        RFH
+    </span>
+    <span title="Show directory content" class="d{ifCurrent default} current{/ifCurrent}">
+        <a href="{plink default dir => $dir, scheme => $scheme}">DIR</a>
+    </span>
+    <span title="Find all locked files in this directory" class="l{ifCurrent locked} current{/ifCurrent}">
+        <a href="{plink locked dir => $dir, scheme => $scheme}">LCK</a>
+    </span>
+</div>
+<div class="sallyx-streamWrappers-fileBrowser-directory">[{$dir}]</div>
+<div class="sallyx-streamWrappers-fileBrowser-clearfix"></div>
+<table class="sallyx-streamWrappers-fileBrowser-table">
+    <thead>
+        <tr><th>Type</th><th>Path</th><th class="tracy-right">size</th><th>mtime</th><th title="shared lock">lck sh</th><th title="exclusive lock">lck ex</th></tr>
+    </thead>
+    <tbody>
+        {foreach $files as $file}
+            <tr class="{$file->filetype}">
+                <td>{$file->filetype}</td>
+                <td><a href="{plink default dir => $file->path, scheme => $scheme}">{$file->name}{if $file->filetype === 'dir'}/{/if}</a></td>
+                <td class="tracy-right">{$file->stat['size']|bytes}</td>
+                <td title="{$file->stat['mtime']|date:'H:i:s'}">{$file->stat['mtime']|date}</td>
+                <td>{$file->lock_sh}</td>
+                <td>{$file->lock_ex}</td>
+            </tr>
+        {/foreach}
+    </tbody>
+</table>
+    <div class="sallyx-streamWrappers-fileBrowser-footer">
+        {time()|date:'Y-m-d H:i:s'}
+    </div>
