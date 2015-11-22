@@ -136,3 +136,4 @@ Access rights are not supported (yet?).
 Functions like chmod(), chgrp(), chown() return always false.
 
 Calling file_put_contents() with LOCK_EX option triggers E_WARNING "Exclusive locks may only be set for regular files"
+(This is a ![PHP bug](https://bugs.php.net/bug.php?id=61201))
