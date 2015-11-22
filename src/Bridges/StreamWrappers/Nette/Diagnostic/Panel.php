@@ -31,7 +31,11 @@ class Panel extends Nette\Object implements IBarPanel
 	public function getPanel()
 	{
 		$app = $this->container->getByType('Nette\Application\Application');
-		$link =  $app->getPresenter()->link(':SallyxBridgesStreamWrappersNettePresenters:Redis:');
+		$presenter = $app->getPresenter();
+		$link = '/sallyx-bridges-stream-wrappers-nette-presenters/redis';
+		if($presenter !== NULL) {
+			$link =  $presenter->link(':SallyxBridgesStreamWrappersNettePresenters:Redis:');
+		}
 		$jsScript =  file_get_contents(__DIR__ . '/assets/main.js');
 		$jsScript = str_replace(
 			array(
