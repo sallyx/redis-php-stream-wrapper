@@ -11,7 +11,7 @@ so you will be able to use redis as as stream resource, i.e. 'redis://foo.txt'
 
 ### 1. Install phpredis/phpredis
 
-See ![phpredis/phpredis](https://github.com/phpredis/phpredis).
+See [phpredis/phpredis](https://github.com/phpredis/phpredis).
 
 ### 2. Install packages by composer
 
@@ -136,4 +136,4 @@ Access rights are not supported (yet?).
 Functions like chmod(), chgrp(), chown() return always false.
 
 Calling file_put_contents() with LOCK_EX option triggers E_WARNING "Exclusive locks may only be set for regular files"
-(This is a ![PHP bug](https://bugs.php.net/bug.php?id=61201))
+(This is a [PHP bug](https://bugs.php.net/bug.php?id=61201))
