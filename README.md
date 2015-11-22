@@ -134,3 +134,5 @@ HMSET www.example.org://foo/bar.txt lock_ex 0 lock_sh 0
 
 Access rights are not supported (yet?).
 Functions like chmod(), chgrp(), chown() return always false.
+
+Calling file_put_contents() with LOCK_EX option triggers E_WARNING "Exclusive locks may only be set for regular files"

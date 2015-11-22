@@ -47,3 +47,8 @@ Assert::true($fs1 !== NULL);
 Assert::true(flock($fs1, LOCK_EX | LOCK_NB));
 Assert::true(flock($fs1, LOCK_UN));
 Assert::true(fclose($fs1));
+
+Assert::error(function() {
+	$str = 'lorem ipsum';
+	file_put_contents('redis://info.log', $str, LOCK_EX);
+}, E_WARNING, 'file_put_contents(): Exclusive locks may only be set for regular files');

@@ -276,6 +276,11 @@ class Wrapper
 	 */
 	public function stream_lock($operation)
 	{
+		if($operation === 0) {
+			// file_put_contents('redis://file.txt', 'lorem ispum', LOCK_EX); calls stream_lock(0)
+			return TRUE;
+		}
+
 		$nb = (bool) ($operation & LOCK_NB);
 		if ($nb) {
 			$operation ^= LOCK_NB;
