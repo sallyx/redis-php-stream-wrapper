@@ -51,7 +51,7 @@ $config = new ConnectorConfig( // all parameters are optional
     $persistent_id = NULL,
     $retry_interval = NULL
 );
-$config = new connectorConfit('/tmp/redis.sock'); // socket connection
+$config = new ConnectorConfig('/tmp/redis.sock'); // socket connection
 ```
 
 #### 2. Create path translator
@@ -79,8 +79,9 @@ $fs = new FileSystem($connector);
 
 ```php
 use Sallyx\StreamWrappers\Wrapper;
-Wrapper::register($fs,'redis'); // 'redis' is a scheme  name of the wrapper ('redis:// ...')
+Wrapper::register($fs,'redis');
 ```
+*redis* is a scheme name of the wrapper ('redis:// ...')
 
 #### 6. Profit
 
@@ -96,7 +97,7 @@ echo file_get_contents('redis://foo/bar.txt');
 If you do not know Nette, have a look at [www.nette.org](https://www.nette.org) or skip this block :)
 
 First put [setup](/README.md#user-content-setup/) into app/bootstrap.php or anywhere before you want to
-use redis stream wrapper. Then you can use redis for example for temp directory:
+use redis stream wrapper. After that you can use redis. For example for temp directory:
 
 ```php
 use Sallyx\StreamWrappers\Redis\Connector;
