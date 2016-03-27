@@ -159,39 +159,50 @@ class FileSystem implements FS
 	 */
 	public function write($filename, $fpos, $data)
 	{
-		$value = $this->storage->getFile($filename);
-		if (empty($value)) {
-			$value = array(
-				'type' => FileSystem::FILE_TYPE_FILE,
-				'ctime' => time(),
-				'atime' => time(),
-				'mtime' => time(),
-				'content' => $fpos < 0 ? '' : str_repeat("\0", $fpos),
-				'size' => $fpos < 0 ? 0 : $fpos
-			);
+		$size = $this->storage->getFileProperty($filename, 'size');
+		if ($size === FALSE) {
+			$fpos = \max($fpos, 0);
+			$content = \str_repeat("\0", $fpos) . $data;
+			$file = $this->createInode($filename, FileSystem::FILE_TYPE_FILE, $content);
+			if($file === FALSE) {
+				return 0;
+			}
+			return $fpos + strlen($data);
 		}
 
 		if ($fpos < 0) {
-			$fpos = $value['size'];
+			$fpos = $size;
 		}
-
 		$dataLen = strlen($data);
-
-		if ($fpos >= $value['size']) {
-			$value['content'] .= str_repeat("\0", $fpos - $value['size']) . $data;
-		} else {
-			$value['content'] = substr($value['content'], 0, $fpos) . $data . substr($value['content'], $fpos + $dataLen);
+		if ($fpos > $size) {
+			$data = \str_repeat("\0", $fpos - $size) . $data;
+			$fpos = $size;
 		}
 
-		$value['atime'] = $value['mtime'] = time();
-		$value['size'] = strlen($value['content']);
-		if (!$this->storage->setFileProperties($filename, $value)) {
-			return 0;
-		}
+		$keys = [$filename, $fpos, $data, time()];
+		$this->storage->evaluate("
+			local filename = KEYS[1];
+			local fpos = ARGV[1];
+			local data = ARGV[2];
+			local time = ARGV[3];
+			local dataLen = string.len(data);
+			local content = redis.call('HGET',filename, 'content');
+			local contentStart = string.sub(content, 1, fpos);
+			local contentEnd = string.sub(content,fpos+dataLen+1,-1);
+			content = contentStart .. data .. contentEnd;
+			redis.call('HMSET', filename, 'atime', time, 'ctime', time, 'content', content, 'size', string.len(content));
+			",
+			$keys, 1);
 
 		return $dataLen;
 	}
 
+	/**
+	 * @param string $filename
+	 * @param string $type
+	 * @param string $content
+	 * @return array|FALSE
+	 */
 	private function createInode($filename, $type, $content)
 	{
 		if ($filename !== '/') {

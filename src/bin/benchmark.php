@@ -34,10 +34,11 @@ class FSBenchmark {
 
 	const TEST_MKDIR = 'mkdir';
 	const TEST_RMDIR = 'rmdir';
-	const TEST_WRITE1 = 'write_append';
-	const TEST_WRITE2 = 'write_big';
+	const TEST_WRITE1 = 'write_a';
+	const TEST_WRITE2 = 'write_b';
+	const TEST_READ = 'read';
 
-	private static $allTests = [ self::TEST_MKDIR, self::TEST_WRITE1, self::TEST_WRITE2, self::TEST_RMDIR];
+	private static $allTests = [ self::TEST_MKDIR, self::TEST_WRITE1, self::TEST_WRITE2, self::TEST_READ, self::TEST_RMDIR];
 
 	/**
 	 * @var name
@@ -74,14 +75,17 @@ class FSBenchmark {
 	public function run() {
 		echo 'Run test '.self::TEST_MKDIR.PHP_EOL;
 		$this->results[self::TEST_MKDIR] =  $this->stopwatch(function() { $this->testMkdir($this->directory,3); });
-		
+
 		echo 'Run test '.self::TEST_WRITE1.PHP_EOL;
-		$data = str_repeat('abcdefghij', 1);
-		$this->results[self::TEST_WRITE1] =  $this->stopwatch(function() use($data) { $this->testWrite('append.bin', $data, 1024); });
-		
-		echo 'Run test '.self::TEST_WRITE2.PHP_EOL;
 		$data = str_repeat('abcdefghij', 1024);
+		$this->results[self::TEST_WRITE1] =  $this->stopwatch(function() use($data) { $this->testWrite('append.bin', $data, 1024); });
+
+		echo 'Run test '.self::TEST_WRITE2.PHP_EOL;
+		$data = str_repeat('abcdefghij', 1024*1024);
 		$this->results[self::TEST_WRITE2] =  $this->stopwatch(function() use($data) { $this->testWrite('big.bin',$data, 1); });
+
+		echo 'Run test '.self::TEST_READ.PHP_EOL;
+		$this->results[self::TEST_READ] =  $this->stopwatch(function() use($data) { $this->testRead('big.bin',1024*1024,1024); });
 
 		echo 'Run test '.self::TEST_RMDIR.PHP_EOL;
 		$this->results[self::TEST_RMDIR] =  $this->stopwatch(function() { $this->testRmdir($this->directory); });
@@ -95,19 +99,19 @@ class FSBenchmark {
 	}
 
 	public function testRmdir($dir) {
-		if (is_dir($dir)) { 
-			$objects = scandir($dir); 
-			foreach ($objects as $object) { 
-				if ($object === "." || $object === "..") { 
+		if (is_dir($dir)) {
+			$objects = scandir($dir);
+			foreach ($objects as $object) {
+				if ($object === "." || $object === "..") {
 					continue;
 				}
 				if (filetype($dir."/".$object) == "dir") {
 					$this->testRmdir($dir."/".$object);
 				}
-			       	else unlink($dir."/".$object); 
+					else unlink($dir."/".$object);
 			}
-			reset($objects); 
-			rmdir($dir); 
+			reset($objects);
+			rmdir($dir);
 		}
 	}
 
@@ -135,6 +139,15 @@ class FSBenchmark {
 		for($i = 0; $i < $repeat; $i++) {
 			file_put_contents($testfile, $data, FILE_APPEND);
 		}
+	}
+
+	public function testRead($filename, $filesize, $step) {
+		$handle = fopen($this->directory.$this->directorySeparator.$filename,'r');
+		for($o = 0; $o < $filesize; $o+=$step) {
+			fread($handle, $step);
+		}
+		fclose($handle);
+
 	}
 
 	/**
