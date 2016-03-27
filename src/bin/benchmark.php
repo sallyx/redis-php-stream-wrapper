@@ -75,11 +75,11 @@ class FSBenchmark {
 	public function run() {
 		echo 'Run test '.self::TEST_MKDIR.PHP_EOL;
 		$this->results[self::TEST_MKDIR] =  $this->stopwatch(function() { $this->testMkdir($this->directory,3); });
-		
+
 		echo 'Run test '.self::TEST_WRITE1.PHP_EOL;
 		$data = str_repeat('abcdefghij', 1024);
 		$this->results[self::TEST_WRITE1] =  $this->stopwatch(function() use($data) { $this->testWrite('append.bin', $data, 1024); });
-		
+
 		echo 'Run test '.self::TEST_WRITE2.PHP_EOL;
 		$data = str_repeat('abcdefghij', 1024*1024);
 		$this->results[self::TEST_WRITE2] =  $this->stopwatch(function() use($data) { $this->testWrite('big.bin',$data, 1); });
@@ -99,19 +99,19 @@ class FSBenchmark {
 	}
 
 	public function testRmdir($dir) {
-		if (is_dir($dir)) { 
-			$objects = scandir($dir); 
-			foreach ($objects as $object) { 
-				if ($object === "." || $object === "..") { 
+		if (is_dir($dir)) {
+			$objects = scandir($dir);
+			foreach ($objects as $object) {
+				if ($object === "." || $object === "..") {
 					continue;
 				}
 				if (filetype($dir."/".$object) == "dir") {
 					$this->testRmdir($dir."/".$object);
 				}
-			       	else unlink($dir."/".$object); 
+					else unlink($dir."/".$object);
 			}
-			reset($objects); 
-			rmdir($dir); 
+			reset($objects);
+			rmdir($dir);
 		}
 	}
 
@@ -147,7 +147,7 @@ class FSBenchmark {
 			fread($handle, $step);
 		}
 		fclose($handle);
-		
+
 	}
 
 	/**
