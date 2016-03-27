@@ -100,12 +100,6 @@ interface FileSystem
 	public function createDirectory($filename);
 
 	/**
-	 * @param type $dirname
-	 * @return array|FALSE
-	 */
-	public function readDirectory($dirname);
-
-	/**
 	 * @param string $filename
 	 * @return boolean
 	 */
@@ -113,7 +107,7 @@ interface FileSystem
 
 	/**
 	 * Remove directory and all its files
-	 * @param string $filename
+	 * @param string $dirname
 	 * @return bool
 	 */
 	public function unlinkRecursive($dirname);

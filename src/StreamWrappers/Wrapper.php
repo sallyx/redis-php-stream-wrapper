@@ -54,8 +54,8 @@ class Wrapper
 	 */
 	public static function register(FileSystem $fileSystem, $wrapperName = 'redis')
 	{
-		if (!preg_match('/[a-z]+/', $wrapperName)) {
-			trigger_error('Invalid wrapper name', E_USER_WARNING);
+		if (!\preg_match('/[a-z]+/', $wrapperName)) {
+			\trigger_error('Invalid wrapper name', E_USER_WARNING);
 			return FALSE;
 		}
 		if (isset(self::$fileSystems[$wrapperName])) {
@@ -592,21 +592,16 @@ class Wrapper
 	}
 
 	/**
-	 * @param string $dirname
-	 * @return array
+	 * @param string $path
+	 * @return boolean
 	 */
-	private function readDirectory($dirname)
-	{
-		$dirname = preg_replace('@/$@', '', $dirname);
-		return $this->fileSystem->readDirectory($dirname);
-	}
-
 	private function initPath($path)
 	{
-		$url = (object) parse_url($path);
+		$path = preg_replace('@^([a-z]+):///?@','${1}://', $path);
+		$url = (object) \parse_url($path);
 		if (empty($url->scheme)) {
 			$matches = NULL;
-			if (preg_match('@^([a-z]+)://$@', $path, $matches)) {
+			if (\preg_match('@^([a-z]+)://$@', $path, $matches)) {
 				$url->scheme = $matches[1];
 				$url->host = '';
 			} else {

@@ -30,7 +30,7 @@ use Sallyx\StreamWrappers\Redis\Connector;
 use Sallyx\StreamWrappers\Redis\FileSystem;
 use Sallyx\StreamWrappers\Wrapper;
 
-$config = new ConectorConfig;
+$config = new ConnectorConfig;
 $translator = new PathTranslator('www.sallyx.org');
 $connector = new Connector($config, $translator);
 $fs = new FileSystem($connector);

@@ -55,3 +55,7 @@ Assert::same(strlen($str), $len);
 Assert::true(fclose($res));
 $content = file_get_contents($filename);
 Assert::same($str, $content);
+
+$filename = 'redis:///extra-slash.txt';
+$res = fopen($filename, 'wb', true);
+Assert::true($res !== NULL);

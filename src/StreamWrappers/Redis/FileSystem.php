@@ -272,23 +272,6 @@ class FileSystem implements FS
 	}
 
 	/**
-	 * @param type $dirname
-	 * @return array|FALSE
-	 */
-	public function readDirectory($dirname)
-	{
-		$directory = $this->storage->getFile($dirname);
-
-		if (!empty($directory) && isset($directory['type'])) {
-			if ($directory['type'] === FS::FILE_TYPE_DIRECTORY) {
-				return $directory;
-			}
-			return FALSE;
-		}
-		return FALSE;
-	}
-
-	/**
 	 * @param string $filename
 	 * @return boolean
 	 */
