@@ -53,7 +53,7 @@ Assert::true(mkdir('redis://b/aa/aaa/',0700, true));
 Assert::true(mkdir('redis://b/bb/aaa/',0700, true));
 Assert::true(touch('redis://a/pokus.txt'));
 
-$path = 'redis://a';
+$path = 'redis://a/';
 $handle = new \RecursiveDirectoryIterator($path);
 $files = [];
 foreach($handle as $file => $info) {
