@@ -2,7 +2,7 @@
 	"name": "sallyx/redis-php-stream-wrapper",
 	"description": "Implementation of streamWrapper using redis",
 	"homepage": "http://github.org/sallyx/redis-php-stream-wrapper",
-	"license": [ "GNU 2", "BSD-3-Clause"],
+	"license": [ "GPL-2.0-or-later", "BSD-3-Clause"],
 	"authors": [
 		{
 			"name": "Petr Bilek",
